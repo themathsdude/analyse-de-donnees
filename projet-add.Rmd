@@ -84,12 +84,25 @@ baseball_numbers <- subset(baseball, select = c("Bat_times_86", "Hits_86", "Home
 
 Salaires en fonction de l'équipe
 
-```{r boxplot, out.width = "80%"}
-salary_order = order(aggregate(baseball$Salary_1987, list(baseball$Team_1986), FUN=mean)[, 1])
-team_order = aggregate(baseball$Salary_1987, list(baseball$Team_1986), FUN=mean)$Group.1
+```{r boxplot-equipes, out.width = "80%"}
+mean_salary <- aggregate(baseball$Salary_1987, list(baseball$Team_1986), FUN=mean)
+team_ordered <- mean_salary[order(mean_salary$x),]$Group.1
 
-boxplot_equipe <- ggplot(data=baseball) + aes(x=as.factor(reorder(Team_1986, Salary_1987)), y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Equipes")
+boxplot_equipe <- ggplot(data=baseball) + aes(x=factor(Team_1986), y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Equipes")
 boxplot_equipe
+```
+
+```{r boxplot-position, out.width = "80%"}
+mean_salary <- aggregate(baseball$Salary_1987, list(baseball$Team_1986), FUN=mean)
+team_ordered <- mean_salary[order(mean_salary$x),]$Group.1
+
+boxplot_position <- ggplot(data=baseball) + aes(x=factor(Position_1986)[], y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Equipes")
+boxplot_position
+```
+
+```{r boxplot-longevite, out.width = "80%"}
+boxplot_longevite <- ggplot(data=baseball) + aes(x=factor(Longevity), y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Equipes")
+boxplot_longevite
 ```
 
 ### C - Analyse bivariée
