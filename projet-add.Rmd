@@ -1,0 +1,123 @@
+---
+title: Projet d'analyse de données - Baseball
+author: Hicham, Ryad, Elyass et Hongxin
+date: 17 décembre 2022
+output:
+  pdf_document: default
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+    theme: united
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(comment = NA, echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(fig.align = "center", out.width = "80%")
+```
+
+```{css layout, echo = FALSE}
+h1, title, .author, .date {
+  text-align: center;
+}
+p {
+	text-indent: 20px;
+}
+body{
+  font-size: 13pt;
+  text-align: justify;
+}
+```
+
+<br>
+
+## Introduction
+
+Le jeu de données est constitué de 322 joueurs de Baseball regroupant plusieurs
+plusieurs indicateurs de performance, salaire, carrière et équipes.
+
+## Problématique et objectif
+
+
+
+***
+
+## I - Analyse descriptive des données
+
+### A - Analyse du jeu de données
+
+```{r installation-packages, eval = FALSE, echo = FALSE}
+install.packages("ggplot2")
+install.packages("lattice")
+# install.packages("ggThemeAssist")
+# install.packages("gridExtra")
+install.packages("GGally")
+# install.packages("carData")
+# install.packages("car")
+# install.packages("leaps")
+```
+
+```{r import-nettoyage-données}
+library("ggplot2")
+library("lattice")
+# library("ggThemeAssist")
+# library("gridExtra")
+library("GGally")
+# library("carData")
+# library("car")
+# library("leaps")
+baseball <- read.csv("Baseball.csv", sep=";", dec=".", encoding="UTF-8")
+is_na = is.na(baseball)
+baseball_not_na = apply(is_na, 1, sum) == 0
+baseball <- baseball[baseball_not_na, ]
+```
+
+Après importation du jeu de données, voici un tableau résumant les variables quantitatives : 
+
+```{r résumé-sommaire, size="small"}
+baseball_numbers <- subset(baseball, select = c("Bat_times_86", "Hits_86", "Home_runs_1986", "Runs_1986", "Runs_batted_1986", "Walks_1986", "Longevity", "Bat_times_career", "Hits_career", "Home_runs_career", "Runs_career", "Runs_batted_career", "Walks_career", "Put_outs_1986", "Assists_1986", "Errors_1986", "Salary_1987"))
+# sommaire <- summary(baseball)
+```
+
+### B - Analyse univariée
+
+Salaires en fonction de l'équipe
+
+```{r boxplot, out.width = "80%"}
+salary_order = order(aggregate(baseball$Salary_1987, list(baseball$Team_1986), FUN=mean)[, 1])
+team_order = aggregate(baseball$Salary_1987, list(baseball$Team_1986), FUN=mean)$Group.1
+
+boxplot_equipe <- ggplot(data=baseball) + aes(x=as.factor(reorder(Team_1986, Salary_1987)), y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Equipes")
+boxplot_equipe
+```
+
+### C - Analyse bivariée
+
+```{r corrélations, results = 'hide', out.width = "80%"}
+ggpairs1 <- ggpairs(baseball_numbers[, c(7:12)])
+# ggpairs2 <- ggpairs(baseball_numbers[, c(2,4:5)])
+# cor(baseball)
+ggpairs1
+# ggpairs2
+```
+
+<br>
+
+## II - 
+
+### A - 
+
+<br>
+
+## III - 
+
+### A - 
+
+<br>
+
+## Conclusion
+
+<br>
+
+## Annexe
