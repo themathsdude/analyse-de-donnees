@@ -3,12 +3,12 @@ title: Projet d'analyse de données - Baseball
 author: Hicham, Ryad, Elyass et Hongxin
 date: 17 décembre 2022
 output:
+  pdf_document: default
   html_document:
     toc: true
     toc_float:
       collapsed: false
     theme: united
-  pdf_document: default
 ---
 
 ```{r setup, include = FALSE}
