@@ -3,18 +3,18 @@ title: Projet d'analyse de données - Baseball
 author: Hicham, Ryad, Elyass et Hongxin
 date: 17 décembre 2022
 output:
-  pdf_document: default
   html_document:
     toc: true
     toc_float:
       collapsed: false
     theme: united
+  pdf_document: default
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(comment = NA, echo = FALSE)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
-knitr::opts_chunk$set(fig.align = "center", out.width = "80%")
+knitr::opts_chunk$set(fig.align = "center", out.width = "50%")
 ```
 
 ```{css layout, echo = FALSE}
@@ -30,26 +30,11 @@ body{
 }
 ```
 
-<br>
-
-## Introduction
-
-Le jeu de données est constitué de 322 joueurs de Baseball regroupant plusieurs
-plusieurs indicateurs de performance, salaire, carrière et équipes.
-
-## Problématique et objectif
-
-
-
-***
-
-## I - Analyse descriptive des données
-
-### A - Analyse du jeu de données
-
 ```{r installation-packages, eval = FALSE, echo = FALSE}
 install.packages("ggplot2")
 install.packages("lattice")
+install.packages("Hmisc")
+
 # install.packages("ggThemeAssist")
 # install.packages("gridExtra")
 install.packages("GGally")
@@ -64,25 +49,64 @@ library("lattice")
 # library("ggThemeAssist")
 # library("gridExtra")
 library("GGally")
+library("Hmisc")
+
 # library("carData")
 # library("car")
 # library("leaps")
 baseball <- read.csv("Baseball.csv", sep=";", dec=".", encoding="UTF-8")
+nb_joueurs <- length(baseball$Name)
 is_na = is.na(baseball)
-baseball_not_na = apply(is_na, 1, sum) == 0
-baseball <- baseball[baseball_not_na, ]
+not_na = apply(is_na, 1, sum) == 0
+baseball <- baseball[not_na, ]
+baseball_no_na <- read.csv("Baseball_no_na.csv", sep=",", dec=".", encoding="UTF-8")
 ```
 
-Après importation du jeu de données, voici un tableau résumant les variables quantitatives : 
+<br>
+
+## Introduction
+
+Le jeu de données est constitué de `r `nb_joueurs` joueurs de Baseball
+regroupant plusieurs indicateurs de performance, salaire, carrière et équipes.
+
+## Problématique et objectif
+
+La variable salaire est de l'année 1987 et la majorité des autres variables est
+de l'année 1986. Il est donc intéressant de voir l'impact qu'ont eu les 
+différentes performances des joueurs en 1986 sur leur salaire en 1987.
+Nous essaierons d'établir un lien entre performances et salaire des joueurs
+de Baseball de notre dataset.
+(Est-ce que les salaires sont mis à jour chaque année ?)
+
+**Dans quelle mesure la performance d'un joueur explique son salaire ?**
+
+***
+
+## I - Analyse descriptive des données
+
+### A - Analyse du jeu de données
+
+Après importation du jeu de données et retrait des lignes avec des valeurs
+manquantes, on obtient un tableau de `r length(baseball$Name)`. Ce sont tous
+des hitters.
 
 ```{r résumé-sommaire, size="small"}
 baseball_numbers <- subset(baseball, select = c("Bat_times_86", "Hits_86", "Home_runs_1986", "Runs_1986", "Runs_batted_1986", "Walks_1986", "Longevity", "Bat_times_career", "Hits_career", "Home_runs_career", "Runs_career", "Runs_batted_career", "Walks_career", "Put_outs_1986", "Assists_1986", "Errors_1986", "Salary_1987"))
-# sommaire <- summary(baseball)
+# boxplot <- hist.data.frame(baseball_numbers)
+histogram(baseball$Salary_1987)
+baseball_no_na$Log_Salary_1987  <- log(baseball_no_na$Salary_1987)
+Log_salary <- baseball_no_na$Log_Salary_1987
+histogram(baseball_no_na$Log_Salary_1987)
 ```
 
-### B - Analyse univariée
+L'histogramme des salaires nous permet de visualiser l'étendue 
+et la distribution de cette variable. La distribution ressemblant à une 
+distribution de type exponentielle, on regarde le Log du salaire 
+pour avoir une distribution symétrique, réduire la variance de l'échantillon et
+diminuer la grande différence entre les petits et grands salaires. 
+Ajoutons les quartiles des salaires : les 1ers et 2e quartiles seront les petits salaires, et les 3e et 4e quartiles les grands salaires. 
 
-Salaires en fonction de l'équipe
+Affichons les salaires des joueurs en fonction de leur équipe :
 
 ```{r boxplot-equipes, out.width = "80%"}
 mean_salary <- aggregate(baseball$Salary_1987, list(baseball$Team_1986), FUN=mean)
@@ -92,18 +116,35 @@ boxplot_equipe <- ggplot(data=baseball) + aes(x=factor(Team_1986), y=Salary_1987
 boxplot_equipe
 ```
 
+Maintenant les salaires des joueurs en fonction de leur position dans le jeu :
+
 ```{r boxplot-position, out.width = "80%"}
 mean_salary <- aggregate(baseball$Salary_1987, list(baseball$Team_1986), FUN=mean)
 team_ordered <- mean_salary[order(mean_salary$x),]$Group.1
-
+  
 boxplot_position <- ggplot(data=baseball) + aes(x=factor(Position_1986)[], y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Equipes")
 boxplot_position
 ```
+
+Puis leur salaire en fonction de leur ancienneté :
 
 ```{r boxplot-longevite, out.width = "80%"}
 boxplot_longevite <- ggplot(data=baseball) + aes(x=factor(Longevity), y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Equipes")
 boxplot_longevite
 ```
+
+### B - Analyse univariée
+
+Il peut être intéressant de regarder
+
+```{r quelques-graphes, size="small"}
+plot(baseball$Longevity, baseball$Bat_times_career, xlab = "Longevity", ylab = "bat_time_career")
+plot(baseball$Longevity, baseball$Home_runs_career, xlab = "Longevity", ylab = "home_runs_career")
+plot(baseball$Longevity, baseball$Salary_1987, xlab = "Longevity", ylab = "Salary 1987")
+bwplot(Longevity~Salary_1987, data = baseball)
+histogram(baseball_no_na$Salary_Group)
+```
+
 
 ### C - Analyse bivariée
 
@@ -115,19 +156,92 @@ ggpairs1
 # ggpairs2
 ```
 
-<br>
 
-## II - 
-
-### A - 
 
 <br>
 
-## III - 
+## II - Etude groupée
 
-### A - 
+### A - Anova
+
+Anova
+
+```{r anova, echo=TRUE}
+aov.res <- aov(Salary_1987 ~ Longevity, data = baseball)
+summary(aov.res)
+```
+
+Puis
+
+```{r anova-hist}
+aov.res <- aov(Bat_times_86 ~ Salary_Group, data = baseball_no_na)
+summary(aov.res)
+bwplot(Salary_Group ~ Bat_times_86, xlab = "Bat_times", data = baseball_no_na)
+bwplot(Salary_Group ~ Hits_86, data = baseball_no_na)
+bwplot(Salary_Group ~ Home_runs_1986, data = baseball_no_na)
+aov.res_home_runs <- aov(Home_runs_1986~Salary_Group, data = subset(baseball_no_na, Salary_Group == 1 | Salary_Group == 2))
+summary(aov.res_home_runs)
+bwplot(Salary_Group ~ Longevity, data = baseball_no_na)
+aov.res_hit <- aov(Hits_86 ~ Salary_Group, data = baseball_no_na)
+summary(aov.res_hit)
+aov.res_hit_lower <- aov(Hits_86~Salary_Group, data = subset(baseball_no_na, Salary_Group == 1 | Salary_Group == 2))
+summary(aov.res_hit_lower)
+bwplot(Salary_Group ~ Salary_1987, data = baseball_no_na)
+aov.res_salary <- aov(Salary_1987~Salary_Group, data = subset(baseball_no_na, Salary_Group == 1 | Salary_Group == 2))
+summary(aov.res_salary)
+bwplot(Salary_Group~Runs_1986, data = baseball_no_na)
+aov.res_runs <- aov(Runs_1986~Salary_Group, data = subset(baseball_no_na, Salary_Group == 1 | Salary_Group == 2))
+summary(aov.res_runs)
+
+bwplot(Salary_Group~Errors_1986, data = baseball_no_na)
+avo.res_error <- aov(Errors_1986~Salary_Group, data = baseball_no_na)
+summary(avo.res_error)
+```
+
+### B - Histogrammes
+
+```{r histogrammes}
+histogram(~Hits_86 | Salary_Group, data = baseball_no_na)
+```
+
+### C - Tests de student
+
+```{r test-student}
+t.test(Hits_86~Salary_Group, data = subset(baseball_no_na, Salary_Group == 1 | Salary_Group == 2))
+```
 
 <br>
+
+## III - Regressions linéaires
+
+### A - Simple
+
+cas simple
+```{r regression, echo=TRUE}
+reg.res <- lm(Bat_times_career ~ Longevity, data = baseball)
+summary(reg.res)
+```
+
+résidus
+
+```{r residus}
+plot(reg.res$residuals)
+plot(reg.res)
+```
+
+<br>
+
+### B - Multiple
+
+```{r regression-multiple}
+Hits <- baseball_no_na$Hits_86
+Runs <- baseball_no_na$Runs_1986
+Home_runs <- baseball_no_na$Home_runs_1986
+reg.res_5 <- lm(Log_salary ~ Home_runs + Hits)
+summary(reg.res_5)
+plot(reg.res_5)
+acf(reg.res_5$residuals)
+```
 
 ## Conclusion
 
