@@ -91,12 +91,14 @@ manquantes, on obtient un tableau de `r length(baseball$Name)`. Ce sont tous
 des hitters.
 
 ```{r résumé-sommaire, size="small"}
+par(mfrow=c(2,2))
 baseball_numbers <- subset(baseball, select = c("Bat_times_86", "Hits_86", "Home_runs_1986", "Runs_1986", "Runs_batted_1986", "Walks_1986", "Longevity", "Bat_times_career", "Hits_career", "Home_runs_career", "Runs_career", "Runs_batted_career", "Walks_career", "Put_outs_1986", "Assists_1986", "Errors_1986", "Salary_1987"))
 # boxplot <- hist.data.frame(baseball_numbers)
-histogram(baseball$Salary_1987)
+histogram(baseball$Salary_1987,horizontal=TRUE)
 baseball_no_na$Log_Salary_1987  <- log(baseball_no_na$Salary_1987)
 Log_salary <- baseball_no_na$Log_Salary_1987
-histogram(baseball_no_na$Log_Salary_1987)
+histogram(baseball_no_na$Log_Salary_1987,horizontal=TRUE)
+
 ```
 
 L'histogramme des salaires nous permet de visualiser l'étendue 
@@ -116,22 +118,27 @@ boxplot_equipe <- ggplot(data=baseball) + aes(x=factor(Team_1986), y=Salary_1987
 boxplot_equipe
 ```
 
-Maintenant les salaires des joueurs en fonction de leur position dans le jeu :
+
 
 ```{r boxplot-position, out.width = "80%"}
 mean_salary <- aggregate(baseball$Salary_1987, list(baseball$Team_1986), FUN=mean)
 team_ordered <- mean_salary[order(mean_salary$x),]$Group.1
   
-boxplot_position <- ggplot(data=baseball) + aes(x=factor(Position_1986)[], y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Equipes")
-boxplot_position
+boxplot_position <- ggplot(data=baseball) + aes(x=factor(Position_1986)[], y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Positions")
+#boxplot_position
 ```
 
 Puis leur salaire en fonction de leur ancienneté :
 
 ```{r boxplot-longevite, out.width = "80%"}
-boxplot_longevite <- ggplot(data=baseball) + aes(x=factor(Longevity), y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Equipes")
+boxplot_longevite <- ggplot(data=baseball) + aes(x=factor(Longevity), y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Longevity")
 boxplot_longevite
 ```
+Nous constatons l'éxistence de trois phases d'évolution de salaires par rapport aux années expériences professionnelles:
+
+- Phase 1: [1,5] c'est le début de carrières des joueurs de Baseball avec des salaires faibles mais qui augmentent avec le temps. l'emergence de nouvelles stars avec des salaires remarquables.  
+- Phase 2: [6,13] c'est la phase de la maturité professionnelles où des joueurs se différencient par rapport à la mediane, c'est l'age d'or des joeurs ils ont touché des salaires importants.
+- Phase 3: [14,24] c'est la fin des carrières, nous observons que des joueurs démissionnent à partirs de l'année 18, les salaires en parallèles diminuent. Des cas de figures exceptionnelles restent toujours sur le marché et réussissent à garder leur salaires interessants.
 
 ### B - Analyse univariée
 
@@ -227,11 +234,51 @@ résidus
 ```{r residus}
 plot(reg.res$residuals)
 plot(reg.res)
+baseball_no_na$Log_Salary_1987 <- log(baseball_no_na$Salary_1987)
+baseball_no_na
 ```
+
+### A - Simple
+
+
+Runs_career/Longevity ~ Log_Salary_1987
+
+
+
+
+```{r regression, echo=TRUE}
+reg.res <- lm(Runs_career/Longevity ~ Log_Salary_1987, data = baseball_no_na)
+summary(reg.res)
+```
+
+```{r}
+plot(reg.res)
+```
+
+```{r}
+histogram(reg.res$residuals)
+```
+
 
 <br>
 
 ### B - Multiple
+
+
+```{r regression, echo=TRUE}
+reg.res1 <- lm((Runs_career - Home_runs_career + Hits_career)/Longevity ~ Log_Salary_1987, data = baseball_no_na)
+summary(reg.res1)
+```
+```{r}
+plot(reg.res1)
+```
+```{r}
+stdz <- (reg.res1$residuals - mean(reg.res1$residuals))/sd(reg.res1$residuals)
+histogram(stdz)
+histogram(reg.res1$residuals)
+
+```
+
 
 ```{r regression-multiple}
 Hits <- baseball_no_na$Hits_86
@@ -242,6 +289,8 @@ summary(reg.res_5)
 plot(reg.res_5)
 acf(reg.res_5$residuals)
 ```
+
+
 
 ## Conclusion
 
