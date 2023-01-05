@@ -16,7 +16,7 @@ output:
 knitr::opts_chunk$set(comment = NA, echo = FALSE) # comment : starting output character
 # echo : code runs but only output show
 # include : code runs but output not in the document
-knitr::opts_chunk$set(warning = TRUE, message = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 knitr::opts_chunk$set(fig.align = "center", out.width = "80%")
 ```
 
@@ -118,20 +118,7 @@ summary(baseball$Salary_1987)
 
 Ajoutons les quartiles des salaires : les 1ers et 2e quartiles seront les petits salaires, et les 3e et 4e quartiles les grands salaires. 
 
-Affichons les salaires des joueurs en fonction de leur équipe :
 
-```{r boxplot-equipes}
-# mean_salary <- aggregate(baseball$Salary_1987, list(baseball$Team_1986), FUN=mean)
-# team_ordered <- mean_salary[order(mean_salary$x),]$Group.1
-# boxplot_equipe <- ggplot(data=baseball) + aes(x=factor(Team_1986), y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Equipes")
-
-bwplot(Team_1986~Salary_1987, data = baseball)
-```
-
-On observe que l'équipe d'appartenance est discriminante pour le salaire. 
-En particulier, il est évident qu'une anova nous donnera une influence de 
-l'équipe sur le salaire. Même si les équipes contiennent moins de 30 joueurs
-et qu'on a pas de normalité asymptotique.
 
 
 ```{r boxplot-position}
@@ -148,6 +135,11 @@ Puis leur salaire en fonction de leur ancienneté :
 # boxplot_longevite <- ggplot(data=baseball) + aes(x=factor(Longevity), y=Salary_1987) + scale_x_discrete(guide = guide_axis(n.dodge=4)) + geom_boxplot() + xlab("Longevity")
 bwplot(Longevity~Salary_1987, data = baseball)
 ```
+
+On observe que la longévité est discriminante pour le salaire. 
+En particulier, il est évident qu'une anova nous donnera une influence cette variable. Même si certains groupes contiennent moins de 30 joueurs
+et qu'on a pas de normalité asymptotique.
+
 Nous constatons l'existence de trois phases d'évolution de salaires par rapport aux années expériences professionnelles:
 
 - Phase 1: [1,5] c'est le début de carrières des joueurs de Baseball avec des salaires faibles mais qui augmentent avec le temps. L’émergence de nouvelles stars avec des salaires remarquables.
@@ -175,7 +167,7 @@ Deux variables ont été ajoutées au dataframe : Log_Salary et Runs_over_longev
 le nombre de Hits_career et le nombre de Runs_career.
 
 
-```{r corrélations-années, results = 'hide', out.width = "80%"}
+```{r corrélations-années, eval=FALSE, out.width = "80%"}
 selected2 <- c(18, 17, 2, 3, 5, 19)
 ggpairs2 <- ggpairs(baseball_numbers[, selected2])
 ggpairs2
@@ -186,7 +178,7 @@ Log_salaire et Runs_over_longevity. Le nuage de points semble plus centré autou
 d'une éventuelle droite que celui du salaire, qui serait plus utile pour de la 
 classification.
 
-<br>
+\pagebreak
 
 
 ## II - Régressions linéaires
@@ -279,7 +271,7 @@ On va essayer d'expliquer le salaire à partir des variables Runs_career et Hits
 Alors on les divise par Longevity pour avoir des performances moyennes. 
 
 
-```{r regression-multiple}
+```{r regression-multiple, out.width="50%"}
 
 baseball.scaled <- as.data.frame(scale(baseball_numbers))
 reg.multiple.longevity <- lm(Log_Salary_1987 ~ Runs_over_longevity + Hits_over_longevity, data = baseball)
@@ -288,8 +280,7 @@ abline(reg.multiple.longevity)
 summary(reg.multiple.longevity)
 ```
 
-De même, ici on peut rejetter les hypothèses sur les coefficients de régression nuls.
-Pour l'effet cumulé de Runs et Hits, on peut rejetter la nécessité de garder ce 
+De même, ici on peut rejeter les hypothèses sur les coefficients de régression nuls.
 
 ```{r}
 par(mfrow = c(2, 2))
@@ -301,7 +292,7 @@ bien un point levier qui est `r baseball$Name[250]` avec un salaire de
 `r baseball$Salary_1987[250]` qui as un 
 
 
-```{r}
+```{r, out.width="70%"}
 par(mfrow = c(1, 2))
 stdz <- (reg.multiple.longevity$residuals - mean(reg.multiple.longevity$residuals))/sd(reg.multiple.longevity$residuals)
 hist(stdz, main = "Erreurs standardisées")
@@ -313,7 +304,7 @@ Les distributions des résidus standardisés montre des queues longues à gauche
 On refait la même régression, sauf qu'on prend uniquement les variables Hits_86
 et Runs_1986
 
-```{r regression-multiple-2}
+```{r regression-multiple-2, out.width="70%"}
 Hits <- baseball$Hits_86
 Runs <- baseball$Runs_1986
 Home_runs <- baseball$Home_runs_1986
@@ -330,11 +321,13 @@ Par rapport à la première régression multiple, on voit que les Hits de l'ann�
 dernière expliquent mieux le salaire que les Hits moyens sur la carrière.
 
 
-```{r}
-acf(reg.multiple.86$residuals)
+```{r, out.width="70%"}
+acf(reg.multiple.86$residuals, main="ACF")
 ```
 
-A partir du correlogramme nous confirmons l'absence d'autocorrelation des résidus. 
+A partir du corrélogramme nous confirmons l'absence d'auto-corrélation des résidus. 
+
+\pagebreak
 
 ## III - Etude groupée
 
@@ -397,32 +390,48 @@ summary(aov.res_hit)
 Il y'a une difference signifcative de moyenne entre les groupes de salaires dans la performance de hits, de ce fait nous rejettons l'hypothèse nulle de moyennes égales.
 
 Nous remarquons grapiquement (box plot) que pour les 2 groupes avec des salaires faibles ne présentes pas une grandes diffrence en termes de caractéristiques statistiques notamment la moyenne.
+
 ```{r anova-res-hit-lower}
 summary(aov.res_hit_lower)
 ```
 
-Anova nous permets de confirmer notre remarque précedentes.
+L'anova nous permets de confirmer notre remarque précédente.
 
 ```{r anova-res-runs}
 summary(aov.res_runs)
 ```
 
-Pour le home runs, la p value est supérieur à 5%, de ce fait on conclut le home runs n'a pas un grand impact sur les salaires.
+Pour les Home_Runs, la p-value est supérieur à 5%, de ce fait on conclut le 
+nombre de Home_Runs n'a pas un grand impact sur les salaires.
 
 ### B - Tests de student
 
-Nous utilisons le test de student comme alternatif de Anova sur les 2 groupes avec des salaires élevés. 
+Nous utilisons le test de student comme alternative de l'Anova sur les 2 groupes avec des salaires élevés. 
 
 ```{r test-student}
 t.test(Hits_86~Salary_Group, data = subset(baseball_no_na, Salary_Group == 1 | Salary_Group == 2))
 ```
 
-Ceci nous permets de confirmer le fait qu'il y a une difference significative entre les moyennes de hits_86 des deux groupes.
+Ceci nous permets de confirmer le fait qu'il y a une différence significative entre les moyennes de Hits_86 des deux groupes.
 
 <br>
 
 
 ## Conclusion
 
-On conclut
+On ne trouve pas de lien linéaire évident entre nos variables quantitatives.
+Même si un modèle s'adapte toujours aux données, il n'est pas forcément vrai.
+Tentez de correspondre parfaitement aux données revient à faire de l'overfitting, 
+or notre jeu de données n'est probablement pas significatif pour y voir un intérêt.
 
+Néanmoins, les variables sont bien corrélées entres elles (non linéairement). 
+En effet, nous avons vu des tendances positives ou négatives entre variables.
+
+Pour l'Anova, nous avons vu un certain lien entre groupes de Salaires et groupes
+de Hits. Être payé au dessus de la médiane est nécessaire pour être un
+meilleur hitteur. Mais être au dessus de la médiane des hits en 86 n’est pas 
+nécessaire un salaire élevé : il y a des mauvais hitteurs
+dans le premier quartile qui sont bien payés.
+
+Peut-être également que les salaires ne sont pas mis à jour chaque année. 
+Le salaire de l'année 86 n'impacte pas forcément celui de l'année 87.
