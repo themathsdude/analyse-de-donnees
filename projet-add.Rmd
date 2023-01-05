@@ -1,6 +1,6 @@
 ---
 title: Projet d'analyse de données - Baseball
-author: Hicham, Ryad, Elyass et Hongxin
+author: Hicham Echaoui, Réda BENMAAFA, Elyass Sayd et Hongxin Guo
 date: 17 décembre 2022
 output:
   pdf_document:
@@ -182,8 +182,8 @@ ggpairs2
 ```
 
 Pour ce qui est du salaire, le tableau suggère un lien linéaire entre le 
-Log_salaire et Runs_over_longevity. Le nuage de points semble + centré autour
-d'une éventuelle droite que celui du salaire, qui serait + utile pour de la 
+Log_salaire et Runs_over_longevity. Le nuage de points semble plus centré autour
+d'une éventuelle droite que celui du salaire, qui serait plus utile pour de la 
 classification.
 
 <br>
@@ -196,7 +196,7 @@ classification.
 Comme l'a suggéré le tableau des corrélations, on regarde le lien linéaire entre
 Log_Salary_1987 et Runs_career/Longevity = Runs_over_longevity
 
-```{r regression-simple}
+```{r regression-simple,out.width="70%"}
 
 reg.simple <- lm(Log_Salary_1987 ~ Runs_over_longevity, data = baseball)
 plot(Log_Salary_1987 ~ Runs_over_longevity, data = baseball)
@@ -296,7 +296,7 @@ par(mfrow = c(2, 2))
 plot(reg.multiple.longevity)
 ```
 
-Les résidus sont toujours bien normaux. Pour les valeurs aberrantes, on observe
+Les résidus standarisés ne sont pas normaux. Pour les valeurs aberrantes, on observe
 bien un point levier qui est `r baseball$Name[250]` avec un salaire de 
 `r baseball$Salary_1987[250]` qui as un 
 
@@ -308,8 +308,7 @@ hist(stdz, main = "Erreurs standardisées")
 hist(reg.multiple.longevity$residuals, main = "Résidus")
 ```
 
-expliquer distribution résidus standardisés et résidus
-
+Les distributions des résidus standardisés montre des queues longues à gauche signe d'une distribution asymétrique négative ce qui confirme la non normalité. 
 
 On refait la même régression, sauf qu'on prend uniquement les variables Hits_86
 et Runs_1986
@@ -335,7 +334,7 @@ dernière expliquent mieux le salaire que les Hits moyens sur la carrière.
 acf(reg.multiple.86$residuals)
 ```
 
-expliquer absence d'autocorrelation dans les erreurs.
+A partir du correlogramme nous confirmons l'absence d'autocorrelation des résidus. 
 
 ## III - Etude groupée
 
@@ -352,6 +351,8 @@ summary(aov.res)
 
 On regroupe alors les salaires en 4 groupes des 4 quantiles de la distribution afin
 de réaliser une nouvelle anova.
+
+Pour la suite nous avons vérifié la condition de normalité des 4 groupes par le biais du faite que les observations du chaque groupe sont supérieurs à 30.  
 
 ```{r hist-group}
 baseball_no_na$Hits_group <- rep(1, length(baseball_no_na$Name))
@@ -393,27 +394,30 @@ aov.res_runs <- aov(Runs_1986~Salary_Group, data = subset(baseball_no_na, Salary
 summary(aov.res_hit)
 ```
 
-Explication de anova hits
+Il y'a une difference signifcative de moyenne entre les groupes de salaires dans la performance de hits, de ce fait nous rejettons l'hypothèse nulle de moyennes égales.
 
+Nous remarquons grapiquement (box plot) que pour les 2 groupes avec des salaires faibles ne présentes pas une grandes diffrence en termes de caractéristiques statistiques notamment la moyenne.
 ```{r anova-res-hit-lower}
 summary(aov.res_hit_lower)
 ```
 
-Explication de anova hits lower
+Anova nous permets de confirmer notre remarque précedentes.
 
 ```{r anova-res-runs}
 summary(aov.res_runs)
 ```
 
-Explication de anova home runs
+Pour le home runs, la p value est supérieur à 5%, de ce fait on conclut le home runs n'a pas un grand impact sur les salaires.
 
 ### B - Tests de student
+
+Nous utilisons le test de student comme alternatif de Anova sur les 2 groupes avec des salaires élevés. 
 
 ```{r test-student}
 t.test(Hits_86~Salary_Group, data = subset(baseball_no_na, Salary_Group == 1 | Salary_Group == 2))
 ```
 
-Explications test de student.
+Ceci nous permets de confirmer le fait qu'il y a une difference significative entre les moyennes de hits_86 des deux groupes.
 
 <br>
 
