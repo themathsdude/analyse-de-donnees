@@ -2,6 +2,8 @@
 title: Projet d'analyse de données - Baseball
 author: Hicham Echaoui, Réda BENMAAFA, Elyass Sayd et Hongxin Guo
 date: 17 décembre 2022
+bibliography: references.bib
+nocite: '@*'
 output:
   pdf_document:
     toc: true
@@ -199,14 +201,14 @@ summary(reg.simple)
 Les statistiques de tests sont claires, on rejette l'hypothèse que les coefficients
 de régression sont nuls.
 
-```{r}
+```{r plot-res.simple}
 par(mfrow = c(2, 2))
 plot(reg.simple)
 ```
 On a bien la normalité des résidus d'après le QQ-plot. Pour les distances de Cook,
 certaines ont l'air élevées, mais elles ne dépassent pas le contour en poitillés qui n'est pas visible. Il y a donc des valeurs aberrantes dans cette régression mais elles ne sont pas des points leviers.
 
-```{r, eval=FALSE}
+```{r old-code, eval=FALSE}
 # reg.simple <- reg.multiple.runs
 df.residus <- data.frame(residu = rstudent(reg.simple))
 n <- length(baseball$Name)
@@ -271,7 +273,7 @@ On va essayer d'expliquer le salaire à partir des variables Runs_career et Hits
 Alors on les divise par Longevity pour avoir des performances moyennes. 
 
 
-```{r regression-multiple, out.width="50%"}
+```{r regression-multiple-hits-over-longevity, out.width="50%"}
 
 baseball.scaled <- as.data.frame(scale(baseball_numbers))
 reg.multiple.longevity <- lm(Log_Salary_1987 ~ Runs_over_longevity + Hits_over_longevity, data = baseball)
@@ -282,7 +284,7 @@ summary(reg.multiple.longevity)
 
 De même, ici on peut rejeter les hypothèses sur les coefficients de régression nuls.
 
-```{r}
+```{r plot-reg-multiple-longevity}
 par(mfrow = c(2, 2))
 plot(reg.multiple.longevity)
 ```
@@ -292,7 +294,7 @@ bien un point levier qui est `r baseball$Name[250]` avec un salaire de
 `r baseball$Salary_1987[250]` qui as un 
 
 
-```{r, out.width="70%"}
+```{r hist-erreurs-standards, out.width="70%"}
 par(mfrow = c(1, 2))
 stdz <- (reg.multiple.longevity$residuals - mean(reg.multiple.longevity$residuals))/sd(reg.multiple.longevity$residuals)
 hist(stdz, main = "Erreurs standardisées")
@@ -321,11 +323,12 @@ Par rapport à la première régression multiple, on voit que les Hits de l'ann�
 dernière expliquent mieux le salaire que les Hits moyens sur la carrière.
 
 
-```{r, out.width="70%"}
+```{r acf, out.width="70%"}
 acf(reg.multiple.86$residuals, main="ACF")
 ```
 
 A partir du corrélogramme nous confirmons l'absence d'auto-corrélation des résidus. 
+Ce qui signifie que notre modèle linéaire est plus adapté à la forme du nuage de points, c'est à dire l'existence d'une tendance linéaire.
 
 \pagebreak
 
@@ -435,3 +438,7 @@ dans le premier quartile qui sont bien payés.
 
 Peut-être également que les salaires ne sont pas mis à jour chaque année. 
 Le salaire de l'année 86 n'impacte pas forcément celui de l'année 87.
+
+<br>
+
+***
