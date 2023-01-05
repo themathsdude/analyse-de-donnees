@@ -5,14 +5,14 @@ date: 17 décembre 2022
 bibliography: references.bib
 nocite: '@*'
 output:
+  pdf_document:
+    toc: true
   html_document:
     keep_md: yes
     toc: true
     toc_float:
       collapsed: false
     theme: united
-  pdf_document:
-    toc: true
 ---
 
 ```{r setup, include = FALSE, echo = FALSE}
@@ -305,7 +305,7 @@ hist(reg.multiple.longevity$residuals, main = "Résidus")
 Les distributions des résidus standardisés montre des queues longues à gauche signe d'une distribution asymétrique négative ce qui confirme la non normalité. 
 
 On refait la même régression, sauf qu'on prend uniquement les variables Hits_86
-et Runs_1986
+et Runs_1986.
 
 ```{r regression-multiple-2, out.width="70%"}
 Hits <- baseball$Hits_86
@@ -322,6 +322,8 @@ abline(reg.multiple.86)
 
 Par rapport à la première régression multiple, on voit que les Hits de l'année
 dernière expliquent mieux le salaire que les Hits moyens sur la carrière.
+Mais le $R^2$, c'est à dire la variance résiduelle, est trop élevé pour garder
+ce modèle. On ne retiens aucun modèle linéaire pour expliquer les données.
 
 
 ```{r acf, out.width="70%"}
